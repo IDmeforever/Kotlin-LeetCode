@@ -226,3 +226,81 @@ class S367 {
 }
 ```
 
+## [371. 两整数之和[位运算与尾递归]](https://leetcode-cn.com/problems/sum-of-two-integers/)
+
+分情况讨论：
+
+-   若b为0，显然，和为a
+-   若b不为0，$a+b=每一个位相加不进位的和+每一个位相加的进位$
+    -   `a ^ b` -> 每一个位相加的和（不考虑进位）
+    -   `a & b` -> 只有1&1的时候对应的位才为1，故可以表示进位
+        -   若进位不为0，则需要把这个进位给加上去，一直递归到进位为0
+
+```kotlin
+class S371 {
+    fun getSum(a: Int, b: Int): Int {
+        return when (b) {
+            0 -> a
+            else -> getSum(a xor b, (a and b) shl 1)
+        }
+    }
+}
+```
+
+## [374. 猜数字大小[二分查找]](https://leetcode-cn.com/problems/guess-number-higher-or-lower/)
+
+Kotlin中能被继承的类需要用`open`进行修饰
+
+```kotlin
+class S374:GuessGame() {
+    override fun guessNumber(n:Int):Int {
+        var lo = 1
+        var hi = n
+        var mid:Int
+        while (lo <= hi) {
+            mid = lo - (lo - hi) / 2
+            val rtnRes = guess(mid)
+            when (rtnRes) {
+                0 -> return mid
+                -1 -> hi = mid - 1
+                1 -> lo = mid + 1
+                else -> return -1
+            }
+        }
+        return -1
+    }
+}
+```
+
+## [383. 赎金信[分桶操作，字典计数]](https://leetcode-cn.com/problems/ransom-note/)
+
+根据26个字母分桶统计出现次数，对于字符串1中的每一个字符，对桶内对应数据-1，若桶内所有数据都>=0则可以匹配
+
+-   初始化一个定长的数组`val array = IntArray(length)`
+-   遍历数组、Collections：`array.forEach{ 操作符it相关语句 }`，it做循环指针
+-   对数组进行条件判断：`array.all{ it operation ... }`
+
+```kotlin
+fun canConstruct(ransomNote: String, magazine: String): Boolean {
+        val bucket = IntArray(26)
+        magazine.forEach { bucket[it-'a']++ }
+        ransomNote.forEach { bucket[it-'a']-- }
+        return bucket.all { it >= 0 }
+    }
+```
+
+## [387. 字符串中的第一个唯一字符[分桶，字典]](https://leetcode-cn.com/problems/first-unique-character-in-a-string/)
+
+-   数组带序号遍历：`s.forEachIndexed { index, c -> if(bucket[c-'a']==1) return index }`
+
+```kotlin
+class S387 {
+    fun firstUniqChar(s: String): Int {
+        val bucket = IntArray(26)
+        s.forEach { bucket[it-'a']++ }
+        s.forEachIndexed { index, c -> if(bucket[c-'a']==1) return index }
+        return -1
+    }
+}
+```
+
