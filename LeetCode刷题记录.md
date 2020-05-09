@@ -304,3 +304,104 @@ class S387 {
 }
 ```
 
+## [389. 找不同[分桶字典]](https://leetcode-cn.com/problems/find-the-difference/)
+
+-   数组返回第一个符合要求的元素的位置：`bucket.indexOfFirst { it == 1 }`
+
+```kotlin
+class S389 {
+    fun findTheDifference(s: String, t: String): Char {
+        val bucket = IntArray(26)
+        s.forEach { bucket[it-'a']++ }
+        t.forEach {
+            if (bucket[it-'a']==0) {
+                return it
+            }
+            bucket[it-'a']--
+        }
+        return ' '
+    }
+}
+```
+
+## [392. 判断子序列[双指针扫描]](https://leetcode-cn.com/problems/is-subsequence/)
+
+```kotlin
+class S392 {
+    fun isSubsequence(s: String, t: String): Boolean {
+        var i = 0
+        for (c in s.toCharArray()) {
+            while (i<t.length && t[i]!=c) i++
+            i++
+        }
+        return i<=t.length
+    }
+}
+```
+
+## [401. 二进制手表[二进制统计]](https://leetcode-cn.com/problems/binary-watch/)
+
+遍历0:00到11:59，检查时间的小时与分钟转化为二进制后，1的个数和，若个数和符合则将其加入到结果集合中
+
+-   数字对应的二进制中1的数量的统计
+
+    ```kotlin
+    fun count_1_Num(num: Int): Int {
+        var res = 0
+        var n = num
+        while (n != 0) {
+            n = n and (n - 1)
+            res++
+        }
+        return res
+    }
+    ```
+
+    -   原理：
+
+        ```bash
+        假设n=5，对应二进制为：0101，计算n&(n-1)
+        1> n = 0101 & 0100 = 0100 -> 最低位1变为0 -> cnt = 1
+        2> n = 0100 & 0011 = 0000 -> 最低位1变为0 -> cnt = 2
+        3> n = 0000 -> cnt = 2
+        每一次n&(n-1)都会将其最低位1变为0，故可用来统计1的数量
+        ```
+
+```kotlin
+class S401 {
+    /**
+     * n -> 当前亮灯的数量
+     */
+    fun readBinaryWatch(num: Int): List<String> {
+        val res = mutableListOf<String>()
+        for (i in 0 until 12) {
+            if (count_1_Num(i) == num) {
+                res.add("%d:00".format(i))
+                continue
+            }
+            for (j in 0 until 60) {
+                if (count_1_Num(i) + count_1_Num(j) == num) {
+                    res.add("%d:%02d".format(i, j))
+                }
+            }
+        }
+        return res
+    }
+
+    /**
+     * 统计数中转化为二进制中1的数量
+     */
+    fun count_1_Num(num: Int): Int {
+        var res = 0
+        var n = num
+        while (n != 0) {
+            n = n and (n - 1)
+            res++
+        }
+        return res
+    }
+}
+```
+
+
+
