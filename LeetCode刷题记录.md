@@ -247,6 +247,8 @@ class S371 {
 }
 ```
 
+# 2020-05-08
+
 ## [374. 猜数字大小[二分查找]](https://leetcode-cn.com/problems/guess-number-higher-or-lower/)
 
 Kotlin中能被继承的类需要用`open`进行修饰
@@ -303,6 +305,8 @@ class S387 {
     }
 }
 ```
+
+# 2020-05-09
 
 ## [389. 找不同[分桶字典]](https://leetcode-cn.com/problems/find-the-difference/)
 
@@ -403,5 +407,134 @@ class S401 {
 }
 ```
 
+# 2020-05-10
 
+## [404. 左叶子之和[递归/队列]](https://leetcode-cn.com/problems/sum-of-left-leaves/)
+
+使用递归+标记的方法判断是否是左叶子节点
+
+```kotlin
+class S404 {
+    fun sumOfLeftLeaves(root: TreeNode?): Int {
+        return sumOfLL(root, 0)
+    }
+
+    /**
+     * type: 0->root 1->left 2->right
+     */
+    fun sumOfLL(root: TreeNode?, type: Int): Int {
+        if (root == null) {
+            return 0
+        } else {
+            // 为叶子节点
+            if (root.left == null && root.right == null) {
+                if (type == 1) {
+                    return root.`val`
+                } else {
+                    return 0
+                }
+            }
+            else if (root.left == null) {
+                return sumOfLL(root.right, 2)
+            }
+            else if (root.right == null) {
+                return sumOfLL(root.left, 1)
+            } else {
+                return sumOfLL(root.left, 1) + sumOfLL(root.right, 2)
+            }
+        }
+    }
+}
+```
+
+使用队列进行非递归遍历
+
+```kotlin
+class Solution {
+    fun sumOfLeftLeaves(root: TreeNode?): Int {
+        if (root == null) return 0
+
+        val queue: Queue<TreeNode> = LinkedList<TreeNode>()
+        queue.offer(root)
+        var sum = 0
+        while (queue.isNotEmpty()) {
+            val node = queue.poll()
+            val left = node.left
+            if (left != null) {
+                if (left.left == null && left.right == null) sum += left.`val`
+                else queue.offer(left)
+            }
+            if (node.right != null) queue.offer(node.right)
+        }
+        return sum
+    }
+}
+```
+
+## [405. 数字转换为十六进制数[位运算,&0xf取最低四位]](https://leetcode-cn.com/problems/convert-a-number-to-hexadecimal/)
+
+-   循环取n的最低4位转化为二进制，加入字符串中后进行翻转即为结果==`n & 0xf`==
+-   每次右移位4位，正数最左侧补0，负数最左侧补1 ==`n >>= 4`==
+-   循环终止条件
+    -   1.  n为0，（n>0），此时无需继续循环，高位肯定为0
+        2.  16进制字符串的长度<8 -> n的位数小于等于32位所以最后结果肯定小于等于8位
+
+```kotlin
+class S405 {
+    private val tenToHex = listOf('0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f')
+
+    fun toHex(num: Int): String {
+        if (num == 0) return "0"
+        val sb = StringBuilder()
+        var n = num
+        while (n!=0 && sb.length<8) {
+            sb.append(tenToHex[n and 0xf])
+            n = n shr 4
+        }
+        return sb.reverse().toString()
+    }
+}
+```
+
+## [409. 最长回文串[分桶]](https://leetcode-cn.com/problems/longest-palindrome/)
+
+分桶，统计每个字符出现的次数
+
+-   偶数次数的可以均匀分布在左右，所以可以加入结果中
+-   奇数次数的可以取其偶数部分分布在左右，取奇数次数减一加入结果中
+-   若存在奇数次数的字符，则至多可挑选一个最长奇数次序的放入结果中，即只要出现奇数次数，最终最长结果为奇数。由于只能选择一个奇数次数的字符放入结果，所以最多+1，故出现奇数则结果加一
+-   可以统计奇数出现的次数，桶的综合减去oddNum再加上1即为最后结果
+
+```kotlin
+class S409 {
+    fun longestPalindrome1(s: String): Int {
+        val map = HashMap<Char, Int>()
+        s.forEach {
+            if (map.containsKey(it)) {
+                map[it] = map[it]!!+1
+            } else {
+                map[it] = 1
+            }
+        }
+        var res = 0
+        var hasOdd = false
+        map.forEach { (t, u) ->
+            if (u%2==0) {
+                res += u
+            } else {
+                hasOdd = true
+                res += u-1
+            }
+        }
+        return res + if(hasOdd) 1 else 0
+    }
+
+    fun longestPalindrome(s: String): Int {
+        val bucket = IntArray(128)
+        s.forEach { bucket[it.toInt()]++ }
+        var oddCount = bucket.count { (it and 1) == 1 }
+        return if(oddCount > 1) bucket.sum()-(oddCount-1) else bucket.sum()
+    }
+}
+```
 
