@@ -538,3 +538,101 @@ class S409 {
 }
 ```
 
+# 2020-05-11
+
+## [412. Fizz Buzz[穷举]](https://leetcode-cn.com/problems/fizz-buzz/)
+
+```kotlin
+class Solution {
+    fun fizzBuzz(n: Int): List<String> {
+        val re = ArrayList<String>(n)
+        for (i in 1..n) {
+            re.add(when {
+                i % 3 != 0 && i % 5 != 0 -> i.toString()
+                i % 3 == 0 && i % 5 == 0 -> "FizzBuzz"
+                i % 3 == 0 -> "Fizz"
+                else -> "Buzz"
+            })
+        }
+        return re
+    }
+}
+```
+
+## [414. 第三大的数[遍历,边界条件]](https://leetcode-cn.com/problems/third-maximum-number/)
+
+一次遍历，多次比较，注意判断`Int.MIN_VALUE`这个边界值可能存在于测试用例中
+
+```kotlin
+import kotlin.math.max
+
+class S414 {
+    fun thirdMax(nums: IntArray): Int {
+        if (nums.size == 1) return nums[0]
+        if (nums.size == 2) return max(nums[0], nums[1])
+
+        var max1 = Int.MIN_VALUE
+        var max2 = Int.MIN_VALUE
+        var max3 = Int.MIN_VALUE
+
+        var maxCount = 0        // 记录有多少个大的，防止都为同一数字，若maxCount>=3则返回第三大，否则第一大
+        var hasIntMin = false   // 数字中是否有Int.MIN_VALUE
+
+        nums.forEach {
+            // 检查是不是Int.MIN_VALUE
+            if (it == Int.MIN_VALUE && !hasIntMin) {
+                hasIntMin = true
+                maxCount++
+            }
+            when {  // and判断是为了防止it值等于max1或max2
+                it > max1 -> {
+                    maxCount++
+                    max3 = max2
+                    max2 = max1
+                    max1 = it
+                }
+                it > max2 && it < max1 -> {
+                    maxCount++
+                    max3 = max2
+                    max2 = it
+                }
+                it > max3 && it < max2 -> {
+                    maxCount++
+                    max3 = it
+                }
+            }
+        }
+
+        return if (maxCount >= 3) max3 else max1
+    }
+}
+```
+
+## [415. 字符串相加[双指针,进位加法]](https://leetcode-cn.com/problems/add-strings/)
+
+字符串末尾相加，使用双指针指向两个字符串的末尾，使用`carry`表示进位并计算当前的末位的值，每一次循环都加上上一次`carry`进位的值+串1指针值+串2指针值，模10为末位，除10为进位
+
+**可用于：字符串加法、链表加法以及二进制加法**
+
+```kotlin
+import java.lang.StringBuilder
+
+class S415 {
+    fun addStrings(num1: String, num2: String): String {
+        val sb = StringBuilder()
+        var carry = 0
+        var i = num1.length - 1
+        var j = num2.length - 1
+        // 循环结束条件 1.串1指针为0 + 2.串2指针为0 + 3.carry进位为0
+        while (i >= 0 || j >= 0 || carry != 0) {
+            // 进位加上两字符串指针值，模10为末位，除10为进位，保留到下一次循环
+            if (i >= 0) carry += (num1[i--] - '0')
+            if (j >= 0) carry += (num2[j--] - '0')
+            sb.append(carry % 10)
+            carry /= 10
+        }
+        return sb.reverse().toString()
+    }
+}
+```
+
