@@ -636,3 +636,174 @@ class S415 {
 }
 ```
 
+## [434. 字符串中的单词数[字符串分割]](https://leetcode-cn.com/problems/number-of-segments-in-a-string/)
+
+1.  使用正则表达式进行分割
+
+    -   Java中可以采用split方法中带入Regex正则表达式进行分割，Kotlin需要使用`"\\s+".toRegex()`的方式将字符串转化为正则表达式
+
+    -   先`trim()`去除头尾空格，再使用`str.split("\\s+".toRegex())`进行分割
+
+    -   借助Idea中的Java转Kotlin工具查看实现方法的区别：快捷键：`Ctrl+Alt+Shift+K` (macos: `Command+Option+Shift+K`)
+
+        ```kotlin
+        fun countSegments(s: String): Int {
+                val str = s.trim()
+                if (str.isEmpty()) return 0
+                return str.split("\\s+".toRegex()).size
+            }
+        ```
+
+2.  根据空格进行判断
+
+    ```kotlin
+    class Solution {
+        fun countSegments(s: String): Int {
+            var cnt = 0
+            for (i in s.indices) {
+                if (s[i].isWhitespace()) continue
+                if (i == 0 || s[i - 1].isWhitespace()) cnt++
+            }
+            return cnt
+        }
+    }
+    ```
+
+## [437. 路径总和 III[树遍历,路径和]](https://leetcode-cn.com/problems/path-sum-iii/)
+
+1.  注意题目中树的节点包含非正数，所以不能在路径和大于期望值就跳出
+2.  即使当前路径和已经为期望值，也不能跳出当前路径，因为其子节点路径的和可能为0，对本身不产生影响
+
+```kotlin
+class S437 {
+    private var cnt = 0
+
+    fun pathSum(root: TreeNode?, sum: Int): Int {
+        helper(root, sum)
+        return cnt
+    }
+
+    fun helper(root: TreeNode?, sum: Int) {
+        if (root == null) return
+        pathFind(root, sum, 0)
+        helper(root.left, sum)
+        helper(root.right, sum)
+    }
+
+    fun pathFind(root: TreeNode?, sum: Int, cur: Int) {
+        if (root == null) return
+        val pCnt = cur + root.`val`
+        if (pCnt == sum) {
+            cnt++
+        }
+        pathFind(root.left, sum, pCnt)
+        pathFind(root.right, sum, pCnt)
+    }
+}
+```
+
+# 2020-05-14
+
+## [441. 排列硬币[数学归纳,二分查找]](https://leetcode-cn.com/problems/arranging-coins/)
+
+```bash
+				-> 0层 - [0, 0]
+*				-> 1层 - [1, 2]
+* *				-> 2层 - [3, 5]
+* * *			-> 3层 - [6, 9]
+* * * *			-> 4层 - [10, 14]
+* * * * *		-> 5层 - [15, 20]
+...				-> ... - ...
+```
+
+只有每层的最后一个有硬币时才能摆成该层，故若可以摆成m层，则硬币总数应该在从m层的最后一个硬币到m+1层的倒数第二个硬币之间，且若区间范围为`[lowBound, highBound]`，有`highBound = lowBound + m`
+
+现推导`lowBound`的表达式，设第m层的`lowBound`为$f(m)$，观察序列`0,1,3,6,10,15,...`可得
+$$
+f(m)-f(m-1)=m
+$$
+用数列累加的方法，可得表达式：
+$$
+[f(m)-f(m-1)]+[f(m-1)-f(m-2)]+...+[f(1)-f(0)]=n+(n-1)+...+1
+$$
+又因$f(0)=0$，故：
+$$
+f(m)=n+(n-1)+...+1=n*(n+1)/2
+$$
+采用二分查找的方法，从0-n，计算mid对应的lowBound和highBound值，若n在`[lowBound, highBound]`内，则mid为所能摆成的层数，同理，`n < lowBound -> hi = mid - 1`, `n > highBound -> lo = mid + 1`
+
+```kotlin
+class S441 {
+    fun arrangeCoins(n: Int): Int {
+        var lo = 0
+        var hi = n
+        var mid = 0
+        while (lo <= hi) {
+            mid = lo + (hi - lo) / 2
+            val lowBound = getMinBound(mid)
+            val highBound = lowBound + mid
+            // println("mid=$mid, 当前范围:[$lowBound, $highBound], n=$n")
+            when {
+                n in lowBound..highBound -> return mid
+                n < lowBound -> hi = mid - 1
+                n > highBound -> lo = mid + 1
+            }
+        }
+        return -1
+    }
+
+    private fun getMinBound(n: Int): Long {
+        val m = n.toLong()
+        return (m*m + m)/2
+    }
+
+}
+```
+
+## [443. 压缩字符串[指针法]](https://leetcode-cn.com/problems/string-compression/)
+
+```kotlin
+class S443 {
+    fun compress(chars: CharArray): Int {
+        val len = chars.size
+        var p = 0
+        var isInit = true
+        var curChar: Char = p.toChar()
+        var curCount: Int = 0
+        for (index in chars.indices) {
+            if (isInit || chars[index] == curChar) {
+                if(isInit) {
+                    curChar = chars[index]
+                    isInit = false
+                }
+                curCount++
+            } else {
+                if (curCount == 1) {
+                    chars[p++] = curChar
+                } else {
+                    chars[p++] = curChar
+                    val tmpArr = curCount.toString()
+                    tmpArr.forEach {
+                        chars[p++] = it
+                    }
+                }
+                curCount = 1
+                curChar = chars[index]
+            }
+            // println('chars[$index] = ${chars[index]}, curChar = ${curChar}, curCount = ${curCount}')
+        }
+        if (curCount == 1) {
+            chars[p++] = curChar
+        } else {
+            chars[p++] = curChar
+            val tmpArr = curCount.toString()
+            tmpArr.forEach {
+                chars[p++] = it
+            }
+        }
+        // println(Arrays.toString(chars))
+        return p
+    }
+}
+```
+
