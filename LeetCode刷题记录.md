@@ -807,3 +807,118 @@ class S443 {
 }
 ```
 
+# 2020-05-15
+
+## [447. 回旋镖的数量[排列组合,增量]](https://leetcode-cn.com/problems/number-of-boomerangs/)
+
+存在相同距离，即`map[dis]`至少为2，产生的回旋镖数量应为$A(map[dis], 2)=map[dis]*(map[dis]-1)$
+每添加一个相同距离，即增量$delta=(n+1)*n-n*(n-1)=2n$，即结果增加2n
+
+```kotlin
+import kotlin.math.pow
+
+class S447 {
+    fun numberOfBoomerangs(points: Array<IntArray>): Int {
+        val len = points.size
+        var ans = 0
+        val map = HashMap<Double, Int>()
+        for (i in 0 until len) {
+            for (j in 0 until len) {
+                if (i == j) continue
+                // 计算距离
+                val dis = (points[i][0] - points[j][0]).toDouble().pow(2.0) +
+                        (points[i][1] - points[j][1]).toDouble().pow(2.0)
+                // 哈希表
+                if (!map.containsKey(dis)) {
+                    map[dis] = 1
+                } else {
+                    // 存在相同距离，即map[dis]至少为2，产生的回旋镖数量应为A(map[dis], 2)=map[dis]*(map[dis]-1)
+                    // 每添加一个相同距离，即增量delta=(n+1)*n-n*(n-1)=2n，即结果增加2n
+                    ans += map[dis]!! * 2
+                    map[dis] = map[dis]!! + 1
+                }
+            }
+            // 后续不考虑上一个点，清空Hash表
+            map.clear()
+        }
+        return ans
+    }
+}
+```
+
+## [448. 找到所有数组中消失的数字[正负置位]](https://leetcode-cn.com/problems/find-all-numbers-disappeared-in-an-array/)
+
+**核心思想：**利用数组每个元素的正负号来标志第n个数字是否出现过，为负数表示出现过，正数则表示未出现过。
+
+**操作方法：**遍历数组，取元素的正数部分，看此元素`nums[nums[i].abs-1]`即这个数字对应的数组位置上的数字是否大于0（该数字之前未出现过），大于0将其置为负值表示出现过（为负数表示出现过，不用处理）。遍历一遍后，若数组元素为正数，则代表这个位置对应的数字未出现过。
+
+```kotlin
+import kotlin.math.absoluteValue
+
+class S448 {
+    fun findDisappearedNumbers(nums: IntArray): List<Int> {
+        val res = ArrayList<Int>()
+        for (index in nums.indices) {
+            if (nums[nums[index].absoluteValue-1] > 0) {
+                nums[nums[index].absoluteValue-1] = -nums[nums[index].absoluteValue-1]
+            }
+        }
+        nums.forEachIndexed { index, i ->
+            if (i > 0) res.add(index+1)
+        }
+        return res
+    }
+}
+```
+
+## [453. 最小移动次数使数组元素相等[逆向等效思想]](https://leetcode-cn.com/problems/minimum-moves-to-equal-array-elements/)
+
+**核心思想**：同时给数组中的n-1个元素+1，在此题中的效果相当于给剩余的1个元素-1，所以若想让所有元素值相同，则让每一个元素都减小到数组最小值，计算减少的次数即可。
+
+例子:
+
+```bash
+[1 2 3 4] 加n-1个1:	[2 3 4 4] [3 4 5 4] [4 5 6 4] [5 6 6 5] [6 7 6 6] [7 7 7 7] -> 6步
+[1 2 3 4] 减1个1:		[1 2 3 3] [1 2 3 2] [1 2 3 1] [1 2 2 1] [1 2 1 1] [1 1 1 1] -> 6步=(4-1)+(3-1)+(2-1)
+```
+
+```kotlin
+class S453 {
+    fun minMoves(nums: IntArray): Int {
+        val minVal = nums.min()
+        var res = 0
+        nums.forEach {
+            res += (it - minVal!!)
+        }
+        return res
+    }
+}
+```
+
+## [455. 分发饼干[排序+双指针]](https://leetcode-cn.com/problems/assign-cookies/)
+
+对两个数组排序，采用双指针的方法来进行结果计算
+
+```kotlin
+class S455 {
+    fun findContentChildren(g: IntArray, s: IntArray): Int {
+        // g[i]为每个孩子的胃口，s[i]为每个饼干的尺寸
+        g.sort()
+        s.sort()
+        var ptrG = 0
+        var ptrS = 0
+        var res = 0
+        while (ptrG < g.size && ptrS < s.size) {
+            if(s[ptrS] >= g[ptrG]) {
+                res++
+                ptrS++
+                ptrG++
+            } else {
+                ptrS++
+            }
+        }
+        return res
+    }
+}
+```
+
